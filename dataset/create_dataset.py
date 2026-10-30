@@ -100,7 +100,7 @@ def split_dataset(df: pd.DataFrame, csv_name: str, training_size: int, validatio
 if __name__=="__main__":
     N = 10000
     PATH_TO_DATASET = "goodreads_reviews_spoiler_raw.json.gz"
-    KEEP_COLS = ['book_id', 'review_text']
+    KEEP_COLS = ['review_id', 'book_id', 'review_text']
     SAVE_TO_CSV = "goodreads_reviews.csv"
 
     random.seed(100)
