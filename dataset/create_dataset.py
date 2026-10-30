@@ -44,25 +44,23 @@ def clean_dataset(df: pd.DataFrame, keep_cols: list) -> pd.DataFrame:
 
 def split_dataset(df: pd.DataFrame, csv_name: str, training_size: int, validation_size: int, testing_size: int) -> pd.DataFrame:
     train_slice = int(len(df) * training_size)
-    val_slice = int(len(df) * validation_size)
-    test_slice = int(len(df) * testing_size)
+    val_slice = train_slice + int(len(df) * validation_size)
+    test_slice = val_slice + int(len(df) * testing_size)
 
-    training_data = df.iloc[:test_slice]
-    validation_data = df.iloc[test_slice:val_slice]
-    testing_data = df.iloc[val_slice:]
+    training_data = df.iloc[:train_slice]
+    validation_data = df.iloc[train_slice:val_slice]
+    testing_data = df.iloc[val_slice:test_slice]
 
-    training_data.to_csv(f"training_{SAVE_TO_CSV}", index=False)
-    validation_data.to_csv(f"validation_{SAVE_TO_CSV}", index=False)
-    testing_data.to_csv(f"testing_{SAVE_TO_CSV}", index=False)
+    training_data.to_csv(f"training_{csv_name}", index=False)
+    validation_data.to_csv(f"validation_{csv_name}", index=False)
+    testing_data.to_csv(f"testing_{csv_name}", index=False)
 
+    print("Training Dataset:")
     get_dataset_info(training_data)
+    print("Validation Dataset:")
     get_dataset_info(validation_data)
+    print("Testing Dataset:")
     get_dataset_info(testing_data)
-
-# Print the length
-# Print the # of spoilers and a percentage
-# Print the # of non spoilers and a percentage
-# Print the # of unique books
 
 if __name__=="__main__":
     N = 10000
@@ -72,6 +70,5 @@ if __name__=="__main__":
 
     df = reservoir_sampling(PATH_TO_DATASET, N)
     df = clean_dataset(df, KEEP_COLS)
+    df.to_csv(SAVE_TO_CSV)
     split_dataset(df, SAVE_TO_CSV, 0.8, 0.1, 0.1)
-
-# Since data has book_id we can avoid capturing multiple reviews on the same book else the model will train on book specific information (Data leakage consideration)
