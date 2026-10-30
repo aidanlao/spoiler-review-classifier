@@ -13,6 +13,7 @@ Because of the ~1m entries in the orginal dataset and our need for only a subset
 allows us to pull a subset while providing equal chance for every entry to be included.
 """
 def reservoir_sampling(path: str, n: int) -> pd.DataFrame:
+    random.seed(100)
     reviews = []
 
     with gzip.open(path, "rt", encoding="utf-8") as f:
@@ -42,7 +43,7 @@ def clean_dataset(df: pd.DataFrame, keep_cols: list) -> pd.DataFrame:
 
     return df
 
-def split_dataset(df: pd.DataFrame, csv_name: str, training_size: int, validation_size: int, testing_size: int) -> pd.DataFrame:
+def split_dataset(df: pd.DataFrame, csv_name: str, training_size: int, validation_size: int, testing_size: int) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     train_slice = int(len(df) * training_size)
     val_slice = train_slice + int(len(df) * validation_size)
     test_slice = val_slice + int(len(df) * testing_size)
@@ -55,12 +56,7 @@ def split_dataset(df: pd.DataFrame, csv_name: str, training_size: int, validatio
     validation_data.to_csv(f"validation_{csv_name}", index=False)
     testing_data.to_csv(f"testing_{csv_name}", index=False)
 
-    print("Training Dataset:")
-    get_dataset_info(training_data)
-    print("Validation Dataset:")
-    get_dataset_info(validation_data)
-    print("Testing Dataset:")
-    get_dataset_info(testing_data)
+    return training_data, validation_data, testing_data
 
 if __name__=="__main__":
     N = 10000
@@ -71,4 +67,11 @@ if __name__=="__main__":
     df = reservoir_sampling(PATH_TO_DATASET, N)
     df = clean_dataset(df, KEEP_COLS)
     df.to_csv(SAVE_TO_CSV)
-    split_dataset(df, SAVE_TO_CSV, 0.8, 0.1, 0.1)
+    training_data, validation_data, testing_data = split_dataset(df, SAVE_TO_CSV, 0.8, 0.1, 0.1)
+
+    print("Training Dataset:")
+    get_dataset_info(training_data)
+    print("Validation Dataset:")
+    get_dataset_info(validation_data)
+    print("Testing Dataset:")
+    get_dataset_info(testing_data)

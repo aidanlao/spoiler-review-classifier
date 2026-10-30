@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 
 def get_dataset_info(df: pd.DataFrame):
-    print()
     print("-------------------------------------------------------------")
     # Number of reviews:
     print(f"Number of reviews: {len(df)}")
@@ -19,11 +18,6 @@ def get_dataset_info(df: pd.DataFrame):
     # Number of unique books
     print(f"Number of unique books: {df['book_id'].nunique()}")
     print("Top 5 books with the most reviews:")
-    print(f"{df.groupby('book_id').size().nlargest(5).reset_index(name='count')}")
+    print(f"{df.groupby('book_id').size().nlargest(5).reset_index(name='# of reviews')}")
     print("-------------------------------------------------------------")
     print()
-
-# Print the length
-# Print the # of spoilers and a percentage
-# Print the # of non spoilers and a percentage
-# Print the # of unique books
