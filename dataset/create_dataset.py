@@ -13,22 +13,61 @@ Because of the ~1m entries in the orginal dataset and our need for only a subset
 allows us to pull a subset while providing equal chance for every entry to be included.
 """
 def reservoir_sampling(path: str, n: int) -> pd.DataFrame:
-    random.seed(100)
     reviews = []
 
     with gzip.open(path, "rt", encoding="utf-8") as f:
         for i, line in enumerate(f):
             review = json.loads(line)
 
+            # Initially fill list with n reviews
             if i < n:
                 reviews.append(review)
-            else:
+            else: # After list is full, randomly replace reviews with other reviews
                 j = random.randint(0, i)
 
                 if j < n:
                     reviews[j] = review
 
     return pd.DataFrame(reviews)
+
+def stratified_sampling(path: str, n: int, spoiler_size: int, non_spoiler_size: int):
+    spoilers = []
+    non_spoilers = []
+    len_sp = int(n * spoiler_size)
+    len_np = int(n * non_spoiler_size)
+
+    with gzip.open(path, "rt", encoding="utf-8") as f:
+        for i, line in enumerate(f):
+            review = json.loads(line)
+
+            # Reviews that contain spoilers
+            if  '(view spoiler)' in review['review_text']:
+                # Initially fill list
+                if len(spoilers) < len_sp:
+                    spoilers.append(review)
+                else: # After list is filled, randomly replace reviews with spoilers
+                    j = random.randint(0, len_sp - 1)
+
+                    if j < n:
+                        spoilers[j] = review
+
+            # Reviews that don't contain spoilers
+            else:
+                # Initially fill list
+                if len(non_spoilers) < len_np:
+                    non_spoilers.append(review)
+                else: # After list is filled, randomly replace reviews with non spoilers
+                    j = random.randint(0, len_np - 1)
+
+                    if j < n:
+                        non_spoilers[j] = review
+
+    # Combine into one dataframe and randomize the rows
+    reviews = spoilers + non_spoilers
+    df = pd.DataFrame(reviews)
+    df = df.sample(frac=1, random_state=50).reset_index(drop=True)
+
+    return df
 
 def clean_dataset(df: pd.DataFrame, keep_cols: list) -> pd.DataFrame:
     # Remove useless features
@@ -64,14 +103,21 @@ if __name__=="__main__":
     KEEP_COLS = ['book_id', 'review_text']
     SAVE_TO_CSV = "goodreads_reviews.csv"
 
-    df = reservoir_sampling(PATH_TO_DATASET, N)
+    random.seed(100)
+
+    # df = reservoir_sampling(PATH_TO_DATASET, N)
+    df = stratified_sampling(PATH_TO_DATASET, N, 0.2, 0.8)
     df = clean_dataset(df, KEEP_COLS)
     df.to_csv(SAVE_TO_CSV)
     training_data, validation_data, testing_data = split_dataset(df, SAVE_TO_CSV, 0.8, 0.1, 0.1)
 
+    print("Original Dataset:")
+    get_dataset_info(df)
     print("Training Dataset:")
     get_dataset_info(training_data)
     print("Validation Dataset:")
     get_dataset_info(validation_data)
     print("Testing Dataset:")
     get_dataset_info(testing_data)
+
+
