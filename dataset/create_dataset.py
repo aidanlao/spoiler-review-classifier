@@ -55,6 +55,10 @@ def split_dataset(df: pd.DataFrame, csv_name: str, training_size: int, validatio
     validation_data.to_csv(f"validation_{SAVE_TO_CSV}", index=False)
     testing_data.to_csv(f"testing_{SAVE_TO_CSV}", index=False)
 
+    get_dataset_info(training_data)
+    get_dataset_info(validation_data)
+    get_dataset_info(testing_data)
+
 # Print the length
 # Print the # of spoilers and a percentage
 # Print the # of non spoilers and a percentage
@@ -66,11 +70,8 @@ if __name__=="__main__":
     KEEP_COLS = ['book_id', 'review_text']
     SAVE_TO_CSV = "goodreads_reviews.csv"
 
-    # df = reservoir_sampling(PATH_TO_DATASET, N)
-    # df = clean_dataset(df, KEEP_COLS)
-    # df.to_csv(SAVE_TO_CSV, index=False)
-
-    df = pd.read_csv(SAVE_TO_CSV)
+    df = reservoir_sampling(PATH_TO_DATASET, N)
+    df = clean_dataset(df, KEEP_COLS)
     split_dataset(df, SAVE_TO_CSV, 0.8, 0.1, 0.1)
 
 # Since data has book_id we can avoid capturing multiple reviews on the same book else the model will train on book specific information (Data leakage consideration)
