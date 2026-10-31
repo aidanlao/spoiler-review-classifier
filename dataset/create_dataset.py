@@ -40,6 +40,8 @@ def stratified_sampling(path: str, n: int, spoiler_size: int, non_spoiler_size: 
     non_spoilers = []
     len_sp = int(n * spoiler_size)
     len_np = int(n * non_spoiler_size)
+    spoiler_count = 0
+    non_spoiler_count = 0
 
     with gzip.open(path, "rt", encoding="utf-8") as f:
         for i, line in enumerate(f):
@@ -47,24 +49,26 @@ def stratified_sampling(path: str, n: int, spoiler_size: int, non_spoiler_size: 
 
             # Reviews that contain spoilers
             if  '(view spoiler)' in review['review_text']:
+                spoiler_count += 1
                 # Initially fill list
                 if len(spoilers) < len_sp:
                     spoilers.append(review)
                 else: # After list is filled, randomly replace reviews with spoilers
-                    j = random.randint(0, len_sp - 1)
+                    j = random.randint(0, spoiler_count - 1)
 
-                    if j < n:
+                    if j < len_sp:
                         spoilers[j] = review
 
             # Reviews that don't contain spoilers
             else:
+                non_spoiler_count += 1
                 # Initially fill list
                 if len(non_spoilers) < len_np:
                     non_spoilers.append(review)
                 else: # After list is filled, randomly replace reviews with non spoilers
-                    j = random.randint(0, len_np - 1)
+                    j = random.randint(0, non_spoiler_count - 1)
 
-                    if j < n:
+                    if j < len_np:
                         non_spoilers[j] = review
 
     # Combine into one dataframe and randomize the rows
