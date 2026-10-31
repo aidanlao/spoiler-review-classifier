@@ -30,6 +30,11 @@ def reservoir_sampling(path: str, n: int) -> pd.DataFrame:
 
     return pd.DataFrame(reviews)
 
+"""
+Use stratified sampling instead of reservoir sampling. Similar to reservoir sampling but allows us to forcefully adjust
+the number of spoilers and non-spoilers within the dataset. Pass spoiler size = 0.2 and non_spoiler_size = 0.8 and the
+dataset will consist of 20% spoilers and 80% non-spoilers.
+"""
 def stratified_sampling(path: str, n: int, spoiler_size: int, non_spoiler_size: int):
     spoilers = []
     non_spoilers = []
@@ -82,18 +87,16 @@ def clean_dataset(df: pd.DataFrame, keep_cols: list) -> pd.DataFrame:
 
     return df
 
-def split_dataset(df: pd.DataFrame, csv_name: str, training_size: int, validation_size: int, testing_size: int) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def split_dataset(df: pd.DataFrame, training_size: int, validation_size: int, testing_size: int) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    # Create slices for each part of the dataset
     train_slice = int(len(df) * training_size)
     val_slice = train_slice + int(len(df) * validation_size)
     test_slice = val_slice + int(len(df) * testing_size)
 
+    # Slice each dataset according to given size
     training_data = df.iloc[:train_slice]
     validation_data = df.iloc[train_slice:val_slice]
     testing_data = df.iloc[val_slice:test_slice]
-
-    training_data.to_csv(f"training_{csv_name}", index=False)
-    validation_data.to_csv(f"validation_{csv_name}", index=False)
-    testing_data.to_csv(f"testing_{csv_name}", index=False)
 
     return training_data, validation_data, testing_data
 
@@ -105,12 +108,19 @@ if __name__=="__main__":
 
     random.seed(100)
 
+    # Create dataset and save as CSV
     # df = reservoir_sampling(PATH_TO_DATASET, N)
     df = stratified_sampling(PATH_TO_DATASET, N, 0.2, 0.8)
     df = clean_dataset(df, KEEP_COLS)
     df.to_csv(SAVE_TO_CSV)
-    training_data, validation_data, testing_data = split_dataset(df, SAVE_TO_CSV, 0.8, 0.1, 0.1)
 
+    # Split the dataset into training, val, and testing
+    training_data, validation_data, testing_data = split_dataset(df, 0.8, 0.1, 0.1)
+    training_data.to_csv(f"training_{SAVE_TO_CSV}", index=False)
+    validation_data.to_csv(f"validation_{SAVE_TO_CSV}", index=False)
+    testing_data.to_csv(f"testing_{SAVE_TO_CSV}", index=False)
+
+    # Output info
     print("Original Dataset:")
     get_dataset_info(df)
     print("Training Dataset:")
