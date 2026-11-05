@@ -5,6 +5,7 @@
 \usepackage[]{acl}
 \usepackage{times}
 \usepackage{latexsym}
+\usepackage{url}
 
 % For proper rendering and hyphenation of words containing Latin characters (including in bib files)
 \usepackage[T1]{fontenc}
@@ -24,11 +25,11 @@
 %
 % and set <dim> to something 5cm or larger.
 
-\title{Group X Progress Report:\\My Group's Project Name}
+\title{Group 28 Progress Report:\\Spoiler Review Classifier}
 
 
-\author{First Author, Second Author, Third Author \\
-  \texttt{\{macid1,macid2,macid3\}@mcmaster.ca} }
+\author{Sky Quan, Second Author, Third Author \\
+  \texttt{\{quans6@mcmaster.ca,macid2,macid3\}@mcmaster.ca} }
 
 %\author{
 %  \textbf{First Author\textsuperscript{1}},
@@ -75,7 +76,7 @@
 
 \section{Introduction}
 
-Here, write a brief introduction to the problem you are solving. This can be adapted from your problem description and motivation from the original proposal. This should be around 0.25-0.5 pages.
+Many people browse reviews before starting a book. There are popular platforms like Goodreads to facilitate this, but reviews often contain major spoilers. This can ruin the experience of reading the book and upset readers that just want to hear a high-level overview or opinions. Goodreads lets reviewers hide this content behind spoiler tags, but it is based on trust, since humans decide whether to include the spoiler tags or not. Because of this, readers can have a book spoiled before they ever open it even if it doesn't have a spoiler tag.  So, creating a spoiler detector keeps readers safe by checking for untagged spoilers before they are posted, letting readers safely filter through reviews that don't have spoilers. This would make review platforms safer for readers to get a high-level overview of a book without worrying about being spoiled.
 
 \section{Related Work}
 
@@ -83,7 +84,34 @@ Here, talk about the related work you encountered for your approach. Cite at lea
 
 \section{Dataset}
 
-You should write about your dataset here, following the guidelines regarding item 1. This section may be 0.5-1 pages. Depending on your specific dataset, you may want to include subsections for the preprocessing, annotation, etc.
+The source dataset is the Goodreads Spoilers Dataset, originally collected and released by McAuley Lab at UC San Diego, and reposted on Kaggle by Ahmad Mujtaba.
+\begin{itemize}
+  \item Original source: 
+  \item \url{https://cseweb.ucsd.edu/~jmcauley/datasets/goodreads.html}
+  \item Kaggle link: 
+  \item \url{https://www.kaggle.com/datasets/pypiahmad/goodreads-book-review}
+\end{itemize}
+The data was collected in late 2017 from goodreads.com by scraping users' public Goodreads shelves. Given the dataset size of 1,378,033 reviews (of 25,475 books by 18,892 users), we use a smaller, randomly sampled subset of data composed of 10,000.
+ 
+To obtain this smaller and randomized subset, we used stratified reservoir sampling. This was used for two main reasons. First, to give every datapoint a randomized chance to appear in our smaller subset. Secondly, to combat the class imbalance within the source dataset. Since the dataset contains many more reviews without spoilers compared to those with, randomly sampling datapoints doesn't give the model enough spoilers to train on. So, stratified reservoir sampling allows us to also sample a predefined number of spoilers and non-spoilers. With the parameters we set, we create a dataset with 10,000 reviews where 20\% of the reviews contain spoilers and 80\% of the reviews do not, regardless of class imbalance.
+ 
+The source dataset does not label each review as containing or spoiler or not. However, every spoiler within the dataset contains the text “(view spoiler)[\ \ ... (hide spoiler)]”. Where ... represents the specific spoiler to each book. So, if a review contains the text “(view spoiler)” or “(hide spoiler)”, it was labelled as 1, contains a spoiler, and if it did not contain the text, it was labelled as 0, contains no spoiler. The labels were placed under the newly created column has\_spoiler.
+ 
+The dataset is then cleaned by removing the unnecessary columns ['userid', 'rating', 'date\_added', 'date\_updated', 'read\_at', 'started\_at', 'n\_votes', 'n\_comments'] while keeping the necessary columns ['review\_id', 'book\_id', 'review\_text', 'has\_spoiler']. The spoiler tags “(view spoiler)[“ and “(hide spoiler)]” are then removed from review\_text. Finally, the dataset is split into training, validation, and testing data based on an 80:10:10 ratio, respectively.
+ 
+\begin{verbatim}
+Example datapoints, review_text shortened for readibility:
+
+{'book_id': '16981',
+'review_id': 'a5d2c3628987712d0e05c4f90798eb67', 
+'review_text': 'Recommended by Don Katz. Avail for free in December...', 
+'has_spoiler': 0} 
+
+{'book_id': '28684704', 
+'review_id': '2ede853b14dc4583f96cf5d120af636f', 
+'review_text': '... can't be discussed without spoilers ... Daniela says, ...', 
+'has_spoiler': 1} 
+\end{verbatim}
 
 \section{Features}
 
@@ -178,6 +206,8 @@ This an example cross-reference to Equation~\ref{eq:example}. You can also write
 \section*{Team Contributions}
 
 Write in this section a few sentences describing the contributions of each team member. What did each member work on? Refer to item 7.
+
+Sky Quan: Handled everything involving the dataset. Loaded the source dataset and completed all the preprocessing: cleaning, labelling, and spliting the dataset as required. Wrote the Introduction and Dataset section.
 
 % Bibliography entries for the entire Anthology, followed by custom entries
 %\bibliography{custom,anthology-overleaf-1,anthology-overleaf-2}
