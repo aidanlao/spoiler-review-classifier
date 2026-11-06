@@ -10,10 +10,15 @@ Or run on its own after training, from the repo root:
 Running it reads the files that train_logreg.py saves in models/output/:
     {split}_predictions.csv  - one row per review with the true label and each model's prediction
     logreg.joblib            - the fitted TF-IDF vectorizer and logistic regression model
+and saves:
+    confusion_matrices_{split}.png - one confusion matrix per model, side by side
 """
 from pathlib import Path
 
 import joblib
+import matplotlib
+matplotlib.use("Agg")  # save figures to files without opening a window
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn.metrics import confusion_matrix
@@ -84,12 +89,58 @@ def format_scores(name: str, s: dict) -> str:
             f"F1={s['f1']:.3f} CM={s['confusion_matrix']}")
 
 
+def plot_confusion_matrices(y_true, predictions: dict, title: str, save_path: Path):
+    """
+    One confusion matrix per model, side by side (same style as Assignment 2).
+
+    predictions maps a model name to its 0/1 predictions, e.g.
+        {"Baseline": preds["pred_baseline"], "Logistic regression": preds["pred_logreg"]}
+    Rows are the true label, columns the prediction.
+    """
+    fig, axes = plt.subplots(1, len(predictions), figsize=(5 * len(predictions), 4.5))
+    axes = np.atleast_1d(axes)  # so a single model still gives a list of axes
+
+    for ax, (name, y_pred) in zip(axes, predictions.items()):
+        matrix = confusion_matrix(y_true, y_pred, labels=[0, 1])
+        s = evaluate(y_true, y_pred)
+        ax.imshow(matrix, cmap="Blues", vmin=0, vmax=matrix.max())
+        # Write each count in its cell; white text on dark cells, black on light ones
+        for row in range(2):
+            for col in range(2):
+                color = "white" if matrix[row, col] > matrix.max() / 2 else "black"
+                ax.text(col, row, str(matrix[row, col]), ha="center", va="center", color=color, fontsize=14)
+        ax.set(title=f"{name}\nP={s['precision']:.2f}  R={s['recall']:.2f}  F1={s['f1']:.2f}",
+               xlabel="Predicted", ylabel="Actual",
+               xticks=[0, 1], yticks=[0, 1],
+               xticklabels=["No spoiler", "Spoiler"],
+               yticklabels=["No spoiler", "Spoiler"])
+
+    fig.suptitle(title)
+    fig.tight_layout()
+    fig.savefig(save_path, dpi=150)
+    plt.close(fig)
+
+
+# Readable names for the prediction columns saved by train_logreg.py
+MODEL_NAMES = {"pred_baseline": "Majority baseline", "pred_logreg": "Logistic regression"}
+
+
 def main():
     for split in ("validation", "test"):
         preds = pd.read_csv(OUT / f"{split}_predictions.csv")
+        pred_cols = [c for c in preds.columns if c.startswith("pred_")]
         print(f"== {split}")
-        for col in [c for c in preds.columns if c.startswith("pred_")]:
+        for col in pred_cols:
             print(format_scores(col.removeprefix("pred_"), evaluate(preds[LABEL_COLUMN], preds[col])))
+
+        save_path = OUT / f"confusion_matrices_{split}.png"
+        plot_confusion_matrices(
+            preds[LABEL_COLUMN],
+            {MODEL_NAMES.get(c, c): preds[c] for c in pred_cols},
+            title=f"Confusion matrices ({split} set)",
+            save_path=save_path,
+        )
+        print(f"Saved {save_path.name}")
 
     saved = joblib.load(OUT / "logreg.joblib")
     spoiler, non_spoiler = top_weighted_terms(saved["model"], saved["vectorizer"])
