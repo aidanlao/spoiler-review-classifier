@@ -4,6 +4,7 @@ import random
 
 import pandas as pd
 import numpy as np
+from sklearn.model_selection import GroupShuffleSplit
 
 from get_dataset_info import get_dataset_info
 
@@ -91,18 +92,36 @@ def clean_dataset(df: pd.DataFrame, keep_cols: list) -> pd.DataFrame:
 
     return df
 
-def split_dataset(df: pd.DataFrame, training_size: int, validation_size: int, testing_size: int) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    # Create slices for each part of the dataset
-    train_slice = int(len(df) * training_size)
-    val_slice = train_slice + int(len(df) * validation_size)
-    test_slice = val_slice + int(len(df) * testing_size)
+"""
+Split by book so that every review of a book lands in the same set (train, validation or test).
+Reviews of the same book share character names and plot details, so a random split would let the
+model "recognize the book" instead of learning what a spoiler looks like. Splitting by book tests
+the model on books it has never seen.
 
-    # Slice each dataset according to given size
-    training_data = df.iloc[:train_slice]
-    validation_data = df.iloc[train_slice:val_slice]
-    testing_data = df.iloc[val_slice:test_slice]
+validation_size and testing_size are shares of the BOOKS, so the review counts come out close to,
+but not exactly, those shares (books have different numbers of reviews).
+"""
+def split_dataset(df: pd.DataFrame, validation_size: float, testing_size: float, seed: int = 42) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    holdout_size = validation_size + testing_size
 
-    return training_data, validation_data, testing_data
+    # First cut: (1 - holdout_size) of the books go to training, the rest are held out.
+    # groups=df['book_id'] keeps all reviews of a book together.
+    outer = GroupShuffleSplit(n_splits=1, test_size=holdout_size, random_state=seed)
+    train_idx, holdout_idx = next(outer.split(df, groups=df['book_id']))
+    training_data, holdout = df.iloc[train_idx], df.iloc[holdout_idx]
+
+    # Second cut: split the held-out books into validation and test
+    inner = GroupShuffleSplit(n_splits=1, test_size=testing_size / holdout_size, random_state=seed)
+    val_idx, test_idx = next(inner.split(holdout, groups=holdout['book_id']))
+    validation_data, testing_data = holdout.iloc[val_idx], holdout.iloc[test_idx]
+
+    # Check that no book appears in more than one set
+    train_books, val_books, test_books = (set(d['book_id']) for d in (training_data, validation_data, testing_data))
+    assert not (train_books & val_books or train_books & test_books or val_books & test_books), "book appears in more than one split"
+
+    return (training_data.reset_index(drop=True),
+            validation_data.reset_index(drop=True),
+            testing_data.reset_index(drop=True))
 
 if __name__=="__main__":
     N = 10000
@@ -118,8 +137,8 @@ if __name__=="__main__":
     df = clean_dataset(df, KEEP_COLS)
     df.to_csv(SAVE_TO_CSV)
 
-    # Split the dataset into training, val, and testing
-    training_data, validation_data, testing_data = split_dataset(df, 0.8, 0.1, 0.1)
+    # Split the dataset into training, val, and testing by book (80/10/10 of the books)
+    training_data, validation_data, testing_data = split_dataset(df, 0.1, 0.1)
     training_data.to_csv(f"training_{SAVE_TO_CSV}", index=False)
     validation_data.to_csv(f"validation_{SAVE_TO_CSV}", index=False)
     testing_data.to_csv(f"testing_{SAVE_TO_CSV}", index=False)

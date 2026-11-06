@@ -1,2 +1,6 @@
 .venv
 dataset/goodreads_reviews_spoiler_raw.json
+dataset/goodreads_reviews_spoiler_raw.json.gz
+models/output/*.csv
+__pycache__/
+models/output/*.joblib

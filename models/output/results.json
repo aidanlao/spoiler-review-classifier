@@ -1,0 +1,235 @@
+{
+  "splits": [
+    {
+      "split": "train",
+      "reviews": 8015,
+      "books": 5108,
+      "spoilers": 1611,
+      "spoiler_share": 0.20099812850904553
+    },
+    {
+      "split": "validation",
+      "reviews": 1014,
+      "books": 639,
+      "spoilers": 206,
+      "spoiler_share": 0.20315581854043394
+    },
+    {
+      "split": "test",
+      "reviews": 971,
+      "books": 639,
+      "spoilers": 183,
+      "spoiler_share": 0.18846549948506694
+    }
+  ],
+  "vocab_size": 50000,
+  "tfidf": {
+    "lowercase": true,
+    "ngram_range": [
+      1,
+      2
+    ],
+    "min_df": 2,
+    "max_df": 0.9,
+    "sublinear_tf": true,
+    "max_features": 50000
+  },
+  "grid": [
+    {
+      "C": 0.01,
+      "class_weight": "none",
+      "accuracy": 0.796844181459566,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    {
+      "C": 0.1,
+      "class_weight": "none",
+      "accuracy": 0.796844181459566,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    {
+      "C": 1,
+      "class_weight": "none",
+      "accuracy": 0.8086785009861933,
+      "precision": 0.6,
+      "recall": 0.17475728155339806,
+      "f1": 0.2706766917293233
+    },
+    {
+      "C": 10,
+      "class_weight": "none",
+      "accuracy": 0.7998027613412229,
+      "precision": 0.5135135135135135,
+      "recall": 0.2766990291262136,
+      "f1": 0.35962145110410093
+    },
+    {
+      "C": 100,
+      "class_weight": "none",
+      "accuracy": 0.7850098619329389,
+      "precision": 0.45384615384615384,
+      "recall": 0.28640776699029125,
+      "f1": 0.35119047619047616
+    },
+    {
+      "C": 0.01,
+      "class_weight": "balanced",
+      "accuracy": 0.6706114398422091,
+      "precision": 0.35185185185185186,
+      "recall": 0.7378640776699029,
+      "f1": 0.4764890282131662
+    },
+    {
+      "C": 0.1,
+      "class_weight": "balanced",
+      "accuracy": 0.6962524654832347,
+      "precision": 0.36923076923076925,
+      "recall": 0.6990291262135923,
+      "f1": 0.483221476510067
+    },
+    {
+      "C": 1,
+      "class_weight": "balanced",
+      "accuracy": 0.7366863905325444,
+      "precision": 0.40498442367601245,
+      "recall": 0.6310679611650486,
+      "f1": 0.49335863377609107
+    },
+    {
+      "C": 10,
+      "class_weight": "balanced",
+      "accuracy": 0.7810650887573964,
+      "precision": 0.46396396396396394,
+      "recall": 0.5,
+      "f1": 0.48130841121495327
+    },
+    {
+      "C": 100,
+      "class_weight": "balanced",
+      "accuracy": 0.7781065088757396,
+      "precision": 0.45077720207253885,
+      "recall": 0.4223300970873786,
+      "f1": 0.4360902255639098
+    }
+  ],
+  "best": {
+    "C": 1,
+    "class_weight": "balanced"
+  },
+  "validation": {
+    "baseline": {
+      "accuracy": 0.796844181459566,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "confusion_matrix": [
+        [
+          808,
+          0
+        ],
+        [
+          206,
+          0
+        ]
+      ]
+    },
+    "logreg": {
+      "accuracy": 0.7366863905325444,
+      "precision": 0.40498442367601245,
+      "recall": 0.6310679611650486,
+      "f1": 0.49335863377609107,
+      "confusion_matrix": [
+        [
+          617,
+          191
+        ],
+        [
+          76,
+          130
+        ]
+      ]
+    }
+  },
+  "test": {
+    "baseline": {
+      "accuracy": 0.811534500514933,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "confusion_matrix": [
+        [
+          788,
+          0
+        ],
+        [
+          183,
+          0
+        ]
+      ]
+    },
+    "logreg": {
+      "accuracy": 0.748712667353244,
+      "precision": 0.39933993399339934,
+      "recall": 0.6612021857923497,
+      "f1": 0.49794238683127573,
+      "confusion_matrix": [
+        [
+          606,
+          182
+        ],
+        [
+          62,
+          121
+        ]
+      ]
+    }
+  },
+  "top_spoiler_terms": [
+    "he",
+    "was",
+    "that",
+    "also",
+    "ending",
+    "killed",
+    "don",
+    "her",
+    "why",
+    "died",
+    "scene",
+    "she",
+    "then",
+    "no",
+    "end",
+    "the end",
+    "after",
+    "cheating",
+    "sex",
+    "with"
+  ],
+  "top_non_spoiler_terms": [
+    "read",
+    "review",
+    "spoiler alert",
+    "alert",
+    "http",
+    "com",
+    "school",
+    "beautiful",
+    "reading",
+    "hot",
+    "blog",
+    "past",
+    "review to",
+    "it",
+    "that is",
+    "start",
+    "to come",
+    "better",
+    "story that",
+    "publisher"
+  ]
+}

@@ -6,6 +6,7 @@
 \usepackage{times}
 \usepackage{latexsym}
 \usepackage{url}
+\usepackage{amsmath}
 
 % For proper rendering and hyphenation of words containing Latin characters (including in bib files)
 \usepackage[T1]{fontenc}
@@ -28,8 +29,8 @@
 \title{Group 28 Progress Report:\\Spoiler Review Classifier}
 
 
-\author{Sky Quan, Second Author, Third Author \\
-  \texttt{\{quans6@mcmaster.ca,macid2,macid3\}@mcmaster.ca} }
+\author{Sky Quan, Aidan Lao, Hanna Arendt \\
+  \texttt{\{quans6,laoa6,arendth\}@mcmaster.ca} }
 
 %\author{
 %  \textbf{First Author\textsuperscript{1}},
@@ -86,46 +87,120 @@ Here, talk about the related work you encountered for your approach. Cite at lea
 
 The source dataset is the Goodreads Spoilers Dataset, originally collected and released by McAuley Lab at UC San Diego, and reposted on Kaggle by Ahmad Mujtaba.
 \begin{itemize}
-  \item Original source: 
-  \item \url{https://cseweb.ucsd.edu/~jmcauley/datasets/goodreads.html}
-  \item Kaggle link: 
-  \item \url{https://www.kaggle.com/datasets/pypiahmad/goodreads-book-review}
+  \item Original source: \url{https://cseweb.ucsd.edu/~jmcauley/datasets/goodreads.html}
+  \item Kaggle link: \url{https://www.kaggle.com/datasets/pypiahmad/goodreads-book-reviews}
 \end{itemize}
 The data was collected in late 2017 from goodreads.com by scraping users' public Goodreads shelves. Given the dataset size of 1,378,033 reviews (of 25,475 books by 18,892 users), we use a smaller, randomly sampled subset of data composed of 10,000.
  
 To obtain this smaller and randomized subset, we used stratified reservoir sampling. This was used for two main reasons. First, to give every datapoint a randomized chance to appear in our smaller subset. Secondly, to combat the class imbalance within the source dataset. Since the dataset contains many more reviews without spoilers compared to those with, randomly sampling datapoints doesn't give the model enough spoilers to train on. So, stratified reservoir sampling allows us to also sample a predefined number of spoilers and non-spoilers. With the parameters we set, we create a dataset with 10,000 reviews where 20\% of the reviews contain spoilers and 80\% of the reviews do not, regardless of class imbalance.
  
-The source dataset does not label each review as containing or spoiler or not. However, every spoiler within the dataset contains the text “(view spoiler)[\ \ ... (hide spoiler)]”. Where ... represents the specific spoiler to each book. So, if a review contains the text “(view spoiler)” or “(hide spoiler)”, it was labelled as 1, contains a spoiler, and if it did not contain the text, it was labelled as 0, contains no spoiler. The labels were placed under the newly created column has\_spoiler.
+The source dataset does not label each review as containing or spoiler or not. However, every spoiler within the dataset contains the text \texttt{(view spoiler)[...(hide spoiler)]}, where \texttt{...} represents the specific spoiler to each book. So, if a review contains the text \texttt{(view spoiler)} or \texttt{(hide spoiler)}, it was labelled as 1, contains a spoiler, and if it did not contain the text, it was labelled as 0, contains no spoiler. The labels were placed under the newly created column has\_spoiler.
  
-The dataset is then cleaned by removing the unnecessary columns ['userid', 'rating', 'date\_added', 'date\_updated', 'read\_at', 'started\_at', 'n\_votes', 'n\_comments'] while keeping the necessary columns ['review\_id', 'book\_id', 'review\_text', 'has\_spoiler']. The spoiler tags “(view spoiler)[“ and “(hide spoiler)]” are then removed from review\_text. Finally, the dataset is split into training, validation, and testing data based on an 80:10:10 ratio, respectively.
+The dataset is then cleaned by removing the unnecessary columns ['userid', 'rating', 'date\_added', 'date\_updated', 'read\_at', 'started\_at', 'n\_votes', 'n\_comments'] while keeping the necessary columns ['review\_id', 'book\_id', 'review\_text', 'has\_spoiler']. The spoiler tags \texttt{(view spoiler)[} and \texttt{(hide spoiler)]} are then removed from review\_text. Finally, the dataset is split into training, validation, and testing data by book, with 80\%, 10\%, and 10\% of the books respectively, so that all reviews of a given book appear in only one of the three sets (see Section~\ref{sec:implementation}).
  
+Two example datapoints, with review\_text shortened for readability:
+
+{\footnotesize
 \begin{verbatim}
-Example datapoints, review_text shortened for readibility:
-
 {'book_id': '16981',
-'review_id': 'a5d2c3628987712d0e05c4f90798eb67', 
-'review_text': 'Recommended by Don Katz. Avail for free in December...', 
-'has_spoiler': 0} 
+ 'review_id':
+   'a5d2c3628987712d0e05c4f90798eb67',
+ 'review_text': 'Recommended by Don Katz.
+   Avail for free in December...',
+ 'has_spoiler': 0}
 
-{'book_id': '28684704', 
-'review_id': '2ede853b14dc4583f96cf5d120af636f', 
-'review_text': '... can't be discussed without spoilers ... Daniela says, ...', 
-'has_spoiler': 1} 
+{'book_id': '28684704',
+ 'review_id':
+   '2ede853b14dc4583f96cf5d120af636f',
+ 'review_text': '... can't be discussed
+   without spoilers ... Daniela says, ...',
+ 'has_spoiler': 1}
 \end{verbatim}
+}
 
 \section{Features}
 
-Describe any features you used for your model, or how your data was input to your model. Are you doing feature engineering or feature selection? Are you learning embeddings? Is it all part of one neural network? Refer to item 2. This may range from 0.25 pages to 0.5 pages.
+Each review is represented as a bag-of-words vector weighted by TF-IDF (term frequency--inverse document frequency) \citep{salton1988term}, built with scikit-learn's \texttt{TfidfVectorizer} \citep{pedregosa2011scikit}. A term gets a high weight when it appears often in a review but rarely across the training set, so common filler words count for little and more specific words such as \emph{killed} or \emph{ending} count for more. We use the following settings:
+
+\begin{itemize}
+  \setlength\itemsep{0pt}
+  \item \textbf{Unigrams and bigrams} (\texttt{ngram\_range=(1,2)}). Many spoiler cues are short phrases rather than single words, e.g.\ \emph{the end} or \emph{she dies}.
+  \item \textbf{Lowercasing}, so \emph{Ending} and \emph{ending} are the same feature.
+  \item \textbf{No stop-word removal.} Pronouns such as \emph{he} and \emph{she} turned out to be among the strongest spoiler features, since spoilers tend to retell what characters did. Removing them would throw this signal away.
+  \item \textbf{\texttt{min\_df=2}} drops terms that appear in only one review. These are mostly typos and one-off names that cannot generalize.
+  \item \textbf{\texttt{max\_df=0.9}} drops terms that appear in more than 90\% of reviews.
+  \item \textbf{Sublinear term frequency} ($1+\log \mathrm{tf}$), so a word repeated many times in a long review does not dominate the vector.
+  \item \textbf{Vocabulary capped at 50{,}000 terms}, keeping the most frequent ones.
+\end{itemize}
+
+The vectorizer is fit on the training set only and then applied to the validation and test sets. This way, words that only occur in held-out books do not enter the vocabulary, which matches how the model would be used on new books.
+
+We do not do any further feature selection, augmentation or learned embeddings yet. Masking book-specific words (character and place names) is planned as the next feature step (Section~\ref{sec:plans}).
 
 \section{Implementation}
+\label{sec:implementation}
 
-Describe your model and implementation here. Refer to item 4. This may take around a page.
+All code is written in Python with pandas and scikit-learn and is in \texttt{models/train\_logreg.py}.
+
+\paragraph{Splitting by book.}
+We split the 10{,}000 reviews into training, validation and test sets with \texttt{GroupShuffleSplit}, using \texttt{book\_id} as the group. First 80\% of the books go to training, then the remaining books are split evenly between validation and test. Every review of a given book therefore appears in exactly one set, and the script checks that no book is shared between sets. This tests whether the model can find spoilers in reviews of books it has never seen, rather than memorizing plot details of specific books. Because books have different numbers of reviews, the split is close to, but not exactly, 80/10/10 by review count. Table~\ref{tab:splits} shows the result. The spoiler share stays close to 20\% in every set.
+
+\begin{table}[t]
+  \centering
+  \small
+  \begin{tabular}{lrrr}
+    \hline
+    \textbf{Split} & \textbf{Reviews} & \textbf{Books} & \textbf{Spoiler \%} \\
+    \hline
+    Train      & 8{,}015 & 5{,}108 & 20.1 \\
+    Validation & 1{,}014 &    639  & 20.3 \\
+    Test       &    971  &    639  & 18.8 \\
+    \hline
+  \end{tabular}
+  \caption{\label{tab:splits}Book-based split. No book appears in more than one set.}
+\end{table}
+
+\paragraph{Majority-class baseline.}
+The baseline always predicts the most common class in the training set, which is ``no spoiler''. It reaches 79.7\% accuracy on the validation set while finding no spoilers at all, so its spoiler-class F1 is 0. This shows why accuracy alone is misleading for this task.
+
+\paragraph{Logistic regression.}
+Our main model is L2-regularized logistic regression on the TF-IDF features. It models the probability that a review contains a spoiler as $p(y=1\mid\mathbf{x}) = \sigma(\mathbf{w}^\top\mathbf{x} + b)$ and is trained by minimizing the regularized cross-entropy (log) loss
+\begin{equation}
+  \frac{1}{2}\lVert\mathbf{w}\rVert^2 + C\sum_{i=1}^{n} \alpha_{y_i}\, \ell\big(y_i, \sigma(\mathbf{w}^\top\mathbf{x}_i + b)\big),
+\end{equation}
+where $\ell$ is the log loss, $C$ controls the strength of regularization (smaller $C$ means stronger regularization), and $\alpha_{y}$ is an optional per-class weight. The model is optimized with scikit-learn's \texttt{liblinear} solver, a coordinate-descent method suited to sparse, high-dimensional text features. A review is predicted as a spoiler when $p(y=1\mid\mathbf{x}) \geq 0.5$.
+
+\paragraph{Tuning.}
+We tuned two hyperparameters on the validation set: $C \in \{0.01, 0.1, 1, 10, 100\}$ and the class weights, either equal or \emph{balanced}. Balanced weights scale each class inversely to its frequency, so a missed spoiler costs about four times as much as a false alarm. We picked the setting with the highest spoiler-class F1 on validation (Table~\ref{tab:tuning}). The test set was not used for any of these choices.
+
+\begin{table}[t]
+  \centering
+  \small
+  \begin{tabular}{llrrr}
+    \hline
+    \textbf{Weights} & $\mathbf{C}$ & \textbf{P} & \textbf{R} & \textbf{F1} \\
+    \hline
+    Equal    & 0.1 & 0.00 & 0.00 & 0.00 \\
+    Equal    & 1   & 0.60 & 0.18 & 0.27 \\
+    Equal    & 10  & 0.51 & 0.28 & 0.36 \\
+    Balanced & 0.1 & 0.37 & 0.70 & 0.48 \\
+    Balanced & 1   & 0.41 & 0.63 & \textbf{0.49} \\
+    Balanced & 10  & 0.46 & 0.50 & 0.48 \\
+    \hline
+  \end{tabular}
+  \caption{\label{tab:tuning}Validation precision (P), recall (R) and F1 on the spoiler class for a subset of the tuning grid.}
+\end{table}
+
+Class weighting mattered far more than $C$. With equal weights and strong regularization, the model collapses to the baseline and predicts no spoilers. Even at its best, it finds fewer than a third of the spoilers. Balanced weights roughly double recall at the cost of some precision, and every balanced setting beats every equal-weight setting on F1. The selected model uses balanced weights and $C=1$, reaching a validation F1 of 0.49 (precision 0.41, recall 0.63), against 0 for the baseline.
+
+Inspecting the learned weights shows that the strongest spoiler features are plot-retelling words: \emph{killed}, \emph{died}, \emph{ending}, \emph{the end}, \emph{scene}, \emph{cheating}, and the pronouns \emph{he} and \emph{she}. The strongest non-spoiler features are about the review itself rather than the plot: \emph{read}, \emph{review}, \emph{blog}, \emph{publisher}, \emph{http}. Interestingly, \emph{spoiler alert} points toward non-spoiler, likely because reviewers use the phrase to promise a spoiler-free review.
 
 \section{Results and Evaluation}
 
 How are you evaluating your model? What results do you have so far? What are your baselines? Refer to item 5. This may take around 0.5 pages.
 
 \section{Feedback and Plans}
+\label{sec:plans}
 
 Write about your plans for the remainder of the project. This should include a discussion of the feedback you received from your TA, and how you plan to improve your approach. Reflect on your implementation and areas for improvement. Refer to item 6. This may be around 0.5 pages.
 
