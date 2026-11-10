@@ -187,17 +187,17 @@ We tuned two hyperparameters on the validation set: $C \in \{0.01, 0.1, 1, 10, 1
     \textbf{Weights} & $\mathbf{C}$ & \textbf{P} & \textbf{R} & \textbf{F1} \\
     \hline
     Equal    & 0.1 & 0.00 & 0.00 & 0.00 \\
-    Equal    & 1   & 0.60 & 0.18 & 0.27 \\
+    Equal    & 1   & 0.61 & 0.17 & 0.27 \\
     Equal    & 10  & 0.51 & 0.28 & 0.36 \\
-    Balanced & 0.1 & 0.37 & 0.70 & 0.48 \\
-    Balanced & 1   & 0.41 & 0.63 & \textbf{0.49} \\
-    Balanced & 10  & 0.46 & 0.50 & 0.48 \\
+    Balanced & 0.1 & 0.36 & 0.69 & 0.48 \\
+    Balanced & 1   & 0.41 & 0.65 & \textbf{0.50} \\
+    Balanced & 10  & 0.46 & 0.50 & 0.47 \\
     \hline
   \end{tabular}
   \caption{\label{tab:tuning}Validation precision (P), recall (R) and F1 on the spoiler class for a subset of the tuning grid.}
 \end{table}
 
-Class weighting mattered far more than $C$. With equal weights and strong regularization, the model collapses to the baseline and predicts no spoilers. Even at its best, it finds fewer than a third of the spoilers. Balanced weights roughly double recall at the cost of some precision, and every balanced setting beats every equal-weight setting on F1. The selected model uses balanced weights and $C=1$, reaching a validation F1 of 0.49 (precision 0.41, recall 0.63), against 0 for the baseline.
+Class weighting mattered far more than $C$. With equal weights and strong regularization, the model collapses to the baseline and predicts no spoilers. Even at its best, it finds fewer than a third of the spoilers. Balanced weights roughly double recall at the cost of some precision, and every balanced setting beats every equal-weight setting on F1. The selected model uses balanced weights and $C=1$, reaching a validation F1 of 0.50 (precision 0.41, recall 0.65), against 0 for the baseline.
 
 \section{Results and Evaluation}
 
@@ -263,7 +263,13 @@ On our proposal, our TA, Abdelaziz Serour, told us to remove the Goodreads spoil
 
 Our next step is name and place masking. Since we split by book, character and place names cannot transfer between books, but they may still push predictions toward “spoiler”. We will use spaCy NER to replace people and places with placeholders such as [PERSON] and [LOCATION]. Futhermore, we will investigate on if we will also mask terms that appear almost only in one book, and if so do a Python script for that purpose. We will then rerun the same logistic regression with the same split, tuning and evaluation function. The only change is the input, so any difference in F1 can be credited to masking.
 
-\textbf{After that, the next step is neural network... ????}
+After masking, we will train neural network models in PyTorch, building on the neural network and convolutional neural network material from the course. We will do this in two steps, so that each change can be measured on its own:
+\begin{itemize}
+  \setlength\itemsep{0pt}
+  \item \textbf{Feed-forward network on TF-IDF.} First, we will train a small feed-forward network (one or two hidden layers with ReLU activations and dropout) on the same TF-IDF features as the logistic regression. Since the input is unchanged, this shows whether a non-linear model alone improves over logistic regression.
+  \item \textbf{CNN over word embeddings.} Next, we will train a convolutional neural network that reads the review as a sequence of word embeddings, with filters over windows of a few words. Unlike bag-of-words, this lets the model use word order and short phrases, such as \emph{``she dies at the end''}. Reviews will be cut or padded to a fixed length, and we will check that this does not hide spoilers that appear late in long reviews, since \citet{wan-etal-2019-fine} found that spoilers tend to appear in the latter part of reviews.
+\end{itemize}
+Both networks will output a spoiler probability through a sigmoid and be trained with binary cross-entropy loss using the Adam optimizer. To handle the class imbalance in the same way as our balanced logistic regression, spoiler examples will be weighted about four times higher in the loss. We will tune the learning rate, hidden size and dropout on the validation set, and use early stopping on validation F1 to avoid overfitting. Each network will use the same book-based split, masked and unmasked inputs, and the same evaluation function as logistic regression, so all models are compared on spoiler-class precision, recall, F1 and confusion matrices.
 
 % \section{Template Notes}
 
@@ -346,9 +352,9 @@ Our next step is name and place masking. Since we split by book, character and p
 
 Sky Quan: Handled everything involving the dataset. Loaded the source dataset and completed all the preprocessing: cleaning, labelling, and spliting the dataset as required. Wrote the Introduction and Dataset section.
 
-Aiden Lao:
+Aidan Lao: Built and trained the TF-IDF logistic regression model, including the book-based train/validation/test split and hyperparameter tuning. Wrote the evaluation script, which computes the metrics and generates the confusion matrices. Wrote the Features and Implementation sections.
 
-Hanna Arendt: Evaluated the models and wrote the Related Work, Results and Evaluation, and Feedback and Plans sections.
+Hanna Arendt: Ran the final evaluation of the model on the validation and test sets, and wrote the Related Work, Results and Evaluation, and Feedback and Plans sections.
 
 
 % Bibliography entries for the entire Anthology, followed by custom entries
