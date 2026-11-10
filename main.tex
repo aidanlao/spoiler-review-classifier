@@ -81,7 +81,13 @@ Many people browse reviews before starting a book. There are popular platforms l
 
 \section{Related Work}
 
-Here, talk about the related work you encountered for your approach. Cite at least 5 references. Refer to item 2. No one has done exactly your task? Write about the most similar thing you can find. This should be around 0.25-0.5 pages.
+% Here, talk about the related work you encountered for your approach. Cite at least 5 references. Refer to item 2. No one has done exactly your task? Write about the most similar thing you can find. This should be around 0.25-0.5 pages.
+
+There are plenty of studies regarding spoiler detection through machine learning from the last decade. In 2013, \citeauthor{spoiler-alert} collected spoilers from social media and set a baseline with lexical features. They then showed that metadata-based features improved performance substantially. Another study done by \citeauthor{JEON2016220} targeted TV program tweets, as previous models only performed well on larger bodies of texts (2016). By building a SVM-based prediction model, utilizing four identified features, they created a model that achieved greater precision and comparable recall. 
+
+There are also more recent work that uses neural networks. Whereas the earlier studies were based on hand-crafted domain-specific features, one study used a deep-neural spoiler detection model that used a genre-aware detection mechanism to achieve even higher generalizability \cite{neural2018}. Likewise, a study from 2025 focusing on spoilers in movie reviews from platforms such as IMDb showed that spoiler rates differ by genre and that some users post spoilers more often, and built a model that combines genre information with graph-based user bias (\citeauthor{genre2025}).
+
+The work most similiar to ours is the study our dataset is retrieved from. They developed an end-to-end neural network architecture to detect spoilers based on findings from analyzing their data, such that spoiler language tends to be book-specific \cite{wan-etal-2019-fine}. 
 
 \section{Dataset}
 
@@ -193,102 +199,162 @@ We tuned two hyperparameters on the validation set: $C \in \{0.01, 0.1, 1, 10, 1
 
 Class weighting mattered far more than $C$. With equal weights and strong regularization, the model collapses to the baseline and predicts no spoilers. Even at its best, it finds fewer than a third of the spoilers. Balanced weights roughly double recall at the cost of some precision, and every balanced setting beats every equal-weight setting on F1. The selected model uses balanced weights and $C=1$, reaching a validation F1 of 0.49 (precision 0.41, recall 0.63), against 0 for the baseline.
 
-Inspecting the learned weights shows that the strongest spoiler features are plot-retelling words: \emph{killed}, \emph{died}, \emph{ending}, \emph{the end}, \emph{scene}, \emph{cheating}, and the pronouns \emph{he} and \emph{she}. The strongest non-spoiler features are about the review itself rather than the plot: \emph{read}, \emph{review}, \emph{blog}, \emph{publisher}, \emph{http}. Interestingly, \emph{spoiler alert} points toward non-spoiler, likely because reviewers use the phrase to promise a spoiler-free review.
-
 \section{Results and Evaluation}
 
-How are you evaluating your model? What results do you have so far? What are your baselines? Refer to item 5. This may take around 0.5 pages.
+% How are you evaluating your model? What results do you have so far? What are your baselines? Refer to item 5. This may take around 0.5 pages. 
+
+The model is evaluated through precision, recall and F1 on the spoiler class, which is treated as the positive class. We compare against a majority-class baseline, as earlier mentioned in section~\ref{sec:implementation}. Table \ref{tab:results} shows the results. The balanced logistic regression reaches a test F1 of 0.506, with precision of 0.408 and recall of 0.667. This is far above the majority baseline (F1 of 0), and the test score is nearly identical to the validation F1 of 0.502, so the tuning did not overfit the validation set. 
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \begin{tabular}{llrrrr}
+    \hline
+    \textbf{Set} & \textbf{Model} & \textbf{Acc} & \textbf{P} & \textbf{R} & \textbf{F1} \\
+    \hline
+    Validation  & Majority & 0.797 & 0.000 & 0.000 & 0.000 \\
+    Validation  & LogReg   & 0.740 & 0.410 & 0.646 & 0.502 \\
+    Test & Majority & 0.812 & 0.000 & 0.000 & 0.000 \\
+    Test & LogReg   & 0.755 & 0.408 & 0.667 & 0.506 \\
+    \hline
+  \end{tabular}
+  \caption{\label{tab:results}Spoiler-class results.}
+\end{table}
+
+The validation confusion matrix (Figure \ref{fig:validation_matrix}) shows how the model behaves on the data we tuned on: of the 324 reviews flagged as spoilers, 191 are false alarms, and 73 of the 206 real spoilers are missed. The test confusion matrix (Figure \ref{fig:test_matrix}) shows the same pattern on unseen reviews. Of the 299 reviews the model flags as spoilers, 177 (59\%) are false alarms, while 61 of the 183 real spoilers (33\%) are missed. This is the precision-for-recall trade-off created by the balanced class weights. In practice, a reader using this filter would lose many harmless reviews, though most spoilers would still be caught. 
+
+\begin{figure}[t]
+  \includegraphics[width=\columnwidth]{models/output/confusion_matrices_validation.png}
+  \caption{validation matrix}
+  \label{fig:validation_matrix}
+  
+  \includegraphics[width=\columnwidth]
+  {models/output/confusion_matrices_test.png}
+  \caption{test matrix}
+  \label{fig:test_matrix}
+\end{figure}
+
+Inspecting the learned weights shows that the strongest spoiler features are plot-retelling words: \emph{killed}, \emph{died}, \emph{ending}, \emph{the end}, \emph{scene}, \emph{cheating}, and the pronouns \emph{he} and \emph{she}. The strongest non-spoiler features are about the review itself rather than the plot: \emph{read}, \emph{review}, \emph{blog}, \emph{publisher}, \emph{http}. Interestingly, \emph{spoiler alert} points toward non-spoiler, likely because reviewers use the phrase to promise a spoiler-free review.
+
+\begin{table}[t]
+  \centering
+  \small
+  \begin{tabular}{lrlr}
+    \hline
+    \textbf{Spoiler term} & \textbf{Weight} & \textbf{Non-spoiler term} & \textbf{Weight} \\
+    \hline
+    he      &  2.718 & read          & $-$1.702 \\
+    was     &  2.522 & review        & $-$1.450 \\
+    that    &  2.311 & spoiler alert & $-$1.154 \\
+    also    &  2.290 & alert         & $-$1.133 \\
+    ending  &  2.120 & http          & $-$1.099 \\
+    killed  &  2.081 & com           & $-$1.079 \\
+    \hline
+  \end{tabular}
+  \caption{\label{tab:weights}Weights for spoiler words and non-spoiler words}
+\end{table}
 
 \section{Feedback and Plans}
 \label{sec:plans}
 
-Write about your plans for the remainder of the project. This should include a discussion of the feedback you received from your TA, and how you plan to improve your approach. Reflect on your implementation and areas for improvement. Refer to item 6. This may be around 0.5 pages.
+% Write about your plans for the remainder of the project. This should include a discussion of the feedback you received from your TA, and how you plan to improve your approach. Reflect on your implementation and areas for improvement. Refer to item 6. This may be around 0.5 pages.
 
-\section{Template Notes}
+On our proposal, our TA, Abdelaziz Serour, told us to remove the Goodreads spoiler markers after creating the labels, and to check the class distribution before fixing a sample size. Based on that, we made the decision to do the stratified 10,000-review sample with 20\% spoilers. He advised building TF-IDF and logistic regression first, with a strong evaluation pipeline, before adding NER masking or a neural network, and to use precision, recall, F1 and confusion matrices instead of accuracy. We followed this order, and the results above come from that pipeline. 
 
-You can remove this section or comment it out, as it only contains instructions for how to use this template. You may use subsections in your document as you find appropriate.
+Our next step is name and place masking. Since we split by book, character and place names cannot transfer between books, but they may still push predictions toward “spoiler”. We will use spaCy NER to replace people and places with placeholders such as [PERSON] and [LOCATION]. Futhermore, we will investigate on if we will also mask terms that appear almost only in one book, and if so do a Python script for that purpose. We will then rerun the same logistic regression with the same split, tuning and evaluation function. The only change is the input, so any difference in F1 can be credited to masking.
 
-\subsection{Tables and figures}
+\textbf{After that, the next step is neural network... ????}
 
-See Table~\ref{citation-guide} for an example of a table and its caption.
-See Figure~\ref{fig:experiments} for an example of a figure and its caption.
+% \section{Template Notes}
 
-
-\begin{figure}[t]
-  \includegraphics[width=\columnwidth]{example-image-golden}
-  \caption{A figure with a caption that runs for more than one line.
-    Example image is usually available through the \texttt{mwe} package
-    without even mentioning it in the preamble.}
-  \label{fig:experiments}
-\end{figure}
-
-\begin{figure*}[t]
-  \includegraphics[width=0.48\linewidth]{example-image-a} \hfill
-  \includegraphics[width=0.48\linewidth]{example-image-b}
-  \caption {A minimal working example to demonstrate how to place
-    two images side-by-side.}
-\end{figure*}
+% You can remove this section or comment it out, as it only contains instructions for how to use this template. You may use subsections in your document as you find appropriate.
 
 
-\subsection{Citations}
+% \subsection{Tables and figures}
 
-\begin{table*}
-  \centering
-  \begin{tabular}{lll}
-    \hline
-    \textbf{Output}           & \textbf{natbib command} & \textbf{ACL only command} \\
-    \hline
-    \citep{Gusfield:97}       & \verb|\citep|           &                           \\
-    \citealp{Gusfield:97}     & \verb|\citealp|         &                           \\
-    \citet{Gusfield:97}       & \verb|\citet|           &                           \\
-    \citeyearpar{Gusfield:97} & \verb|\citeyearpar|     &                           \\
-    \citeposs{Gusfield:97}    &                         & \verb|\citeposs|          \\
-    \hline
-  \end{tabular}
-  \caption{\label{citation-guide}
-    Citation commands supported by the style file.
-  }
-\end{table*}
+% See Table~\ref{citation-guide} for an example of a table and its caption.
+% See Figure~\ref{fig:experiments} for an example of a figure and its caption.
 
-Table~\ref{citation-guide} shows the syntax supported by the style files.
-We encourage you to use the natbib styles.
-You can use the command \verb|\citet| (cite in text) to get ``author (year)'' citations, like this citation to a paper by \citet{Gusfield:97}.
-You can use the command \verb|\citep| (cite in parentheses) to get ``(author, year)'' citations \citep{Gusfield:97}.
-You can use the command \verb|\citealp| (alternative cite without parentheses) to get ``author, year'' citations, which is useful for using citations within parentheses (e.g. \citealp{Gusfield:97}).
 
-\subsection{References}
+% \begin{figure}[t]
+%   \includegraphics[width=\columnwidth]{example-image-golden}
+%   \caption{A figure with a caption that runs for more than one line.
+%     Example image is usually available through the \texttt{mwe} package
+%     without even mentioning it in the preamble.}
+%   \label{fig:experiments}
+% \end{figure}
 
-\nocite{Ando2005,andrew2007scalable,rasooli-tetrault-2015}
+% \begin{figure*}[t]
+%   \includegraphics[width=0.48\linewidth]{example-image-a} \hfill
+%   \includegraphics[width=0.48\linewidth]{example-image-b}
+%   \caption {A minimal working example to demonstrate how to place
+%     two images side-by-side.}
+% \end{figure*}
 
-Many websites where you can find academic papers also allow you to export a bib file for citation or bib formatted entry. Copy this into the \texttt{custom.bib} and you will be able to cite the paper in the \LaTeX{}. You can remove the example entries.
 
-\subsection{Equations}
+% \subsection{Citations}
 
-An example equation is shown below:
-\begin{equation}
-  \label{eq:example}
-  A = \pi r^2
-\end{equation}
+% \begin{table*}
+%   \centering
+%   \begin{tabular}{lll}
+%     \hline
+%     \textbf{Output}           & \textbf{natbib command} & \textbf{ACL only command} \\
+%     \hline
+%     \citep{Gusfield:97}       & \verb|\citep|           &                           \\
+%     \citealp{Gusfield:97}     & \verb|\citealp|         &                           \\
+%     \citet{Gusfield:97}       & \verb|\citet|           &                           \\
+%     \citeyearpar{Gusfield:97} & \verb|\citeyearpar|     &                           \\
+%     \citeposs{Gusfield:97}    &                         & \verb|\citeposs|          \\
+%     \hline
+%   \end{tabular}
+%   \caption{\label{citation-guide}
+%     Citation commands supported by the style file.
+%   }
+% \end{table*}
 
-Labels for equation numbers, sections, subsections, figures and tables
-are all defined with the \verb|\label{label}| command and cross references
-to them are made with the \verb|\ref{label}| command.
-This an example cross-reference to Equation~\ref{eq:example}. You can also write equations inline, like this: $A=\pi r^2$.
+% Table~\ref{citation-guide} shows the syntax supported by the style files.
+% We encourage you to use the natbib styles.
+% You can use the command \verb|\citet| (cite in text) to get ``author (year)'' citations, like this citation to a paper by \citet{Gusfield:97}.
+% You can use the command \verb|\citep| (cite in parentheses) to get ``(author, year)'' citations \citep{Gusfield:97}.
+% You can use the command \verb|\citealp| (alternative cite without parentheses) to get ``author, year'' citations, which is useful for using citations within parentheses (e.g. \citealp{Gusfield:97}).
+
+% \subsection{References}
+
+% \nocite{Ando2005,andrew2007scalable,rasooli-tetrault-2015}
+
+% Many websites where you can find academic papers also allow you to export a bib file for citation or bib formatted entry. Copy this into the \texttt{custom.bib} and you will be able to cite the paper in the \LaTeX{}. You can remove the example entries.
+
+% \subsection{Equations}
+
+% An example equation is shown below:
+% \begin{equation}
+%   \label{eq:example}
+%   A = \pi r^2
+% \end{equation}
+
+% Labels for equation numbers, sections, subsections, figures and tables
+% are all defined with the \verb|\label{label}| command and cross references
+% to them are made with the \verb|\ref{label}| command.
+% This an example cross-reference to Equation~\ref{eq:example}. You can also write equations inline, like this: $A=\pi r^2$.
 
 
 % \section*{Limitations}
 
 \section*{Team Contributions}
 
-Write in this section a few sentences describing the contributions of each team member. What did each member work on? Refer to item 7.
+% Write in this section a few sentences describing the contributions of each team member. What did each member work on? Refer to item 7.
 
 Sky Quan: Handled everything involving the dataset. Loaded the source dataset and completed all the preprocessing: cleaning, labelling, and spliting the dataset as required. Wrote the Introduction and Dataset section.
+
+Aiden Lao:
+
+Hanna Arendt: Evaluated the models and wrote the Related Work, Results and Evaluation, and Feedback and Plans sections.
+
 
 % Bibliography entries for the entire Anthology, followed by custom entries
 %\bibliography{custom,anthology-overleaf-1,anthology-overleaf-2}
 
 % Custom bibliography entries only
-\bibliography{custom}
 
 % \appendix
 
@@ -297,4 +363,6 @@ Sky Quan: Handled everything involving the dataset. Loaded the source dataset an
 
 % This is an appendix.
 
+\newpage
+\bibliography{custom}
 \end{document}

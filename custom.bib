@@ -88,3 +88,101 @@
   pages   = {2825--2830},
   year    = {2011}
 }
+
+@inproceedings{wan-etal-2019-fine,
+    title = "Fine-Grained Spoiler Detection from Large-Scale Review Corpora",
+    author = "Wan, Mengting  and
+      Misra, Rishabh  and
+      Nakashole, Ndapa  and
+      McAuley, Julian",
+    editor = "Korhonen, Anna  and
+      Traum, David  and
+      M{\`a}rquez, Llu{\'i}s",
+    booktitle = "Proceedings of the 57th Annual Meeting of the {A}ssociation for {C}omputational {L}inguistics",
+    month = jul,
+    year = "2019",
+    address = "Florence, Italy",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/P19-1248/",
+    doi = "10.18653/v1/P19-1248",
+    pages = "2605--2610",
+    abstract = "This paper presents computational approaches for automatically detecting critical plot twists in reviews of media products. First, we created a large-scale book review dataset that includes fine-grained spoiler annotations at the sentence-level, as well as book and (anonymized) user information. Second, we carefully analyzed this dataset, and found that: spoiler language tends to be book-specific; spoiler distributions vary greatly across books and review authors; and spoiler sentences tend to jointly appear in the latter part of reviews. Third, inspired by these findings, we developed an end-to-end neural network architecture to detect spoiler sentences in review corpora. Quantitative and qualitative results demonstrate that the proposed method substantially outperforms existing baselines."
+}
+
+@article{spoiler-alert,
+author = {Boyd-Graber, Jordan and Glasgow, Kimberly and Zajac, Jackie Sauter},
+title = {Spoiler alert: Machine learning approaches to detect social media posts with revelatory information},
+journal = {Proceedings of the American Society for Information Science and Technology},
+volume = {50},
+number = {1},
+pages = {1-9},
+doi = {https://doi.org/10.1002/meet.14505001073},
+url = {https://asistdl.onlinelibrary.wiley.com/doi/abs/10.1002/meet.14505001073},
+eprint = {https://asistdl.onlinelibrary.wiley.com/doi/pdf/10.1002/meet.14505001073},
+abstract = {Abstract Spoilers—critical plot information about works of fiction that “spoil” a viewer's enjoyment—have prompted elaborate conventions on social media to allow readers to insulate themselves from spoilers. However, these solutions depend on the conscientiousness and rigor of Internet posters and are thus an imperfect system. We create an automatic alternative that could alert users when a piece of text contains a spoiler. An automated spoiler detector serves not only as an additional protection against spoilers, but it also contributes to important problems in computational linguistics. We develop a new dataset of spoilers gathered from social media and create automatic classifiers using machine learning techniques. After establishing baseline performance using lexical features, we develop metadata-based features that substantially improve performance on the spoiler detection task.},
+year = {2013}
+}
+
+@article{JEON2016220,
+title = {Spoiler detection in TV program tweets},
+journal = {Information Sciences},
+volume = {329},
+pages = {220-235},
+year = {2016},
+note = {Special issue on Discovery Science},
+issn = {0020-0255},
+doi = {https://doi.org/10.1016/j.ins.2015.09.005},
+url = {https://www.sciencedirect.com/science/article/pii/S0020025515006593},
+author = {Sungho Jeon and Sungchul Kim and Hwanjo Yu},
+keywords = {Spoiler detection, TV program tweet, Social network mining},
+abstract = {Watching TV programs at the scheduled airtime is difficult due to time differences between countries or personal circumstances. Not to be a victim of spoilers, people sometimes choose a self imposed isolation from civilization until they have seen their favorite program, such as to stay away from the Internet. However, smartphones allow people to habitually check the SNS messages posted by their friends to maintain their relationships. It leads to the problem of exposing spoilers about their favorite TV programs. To prevent a self imposed isolation from their friends, we need automatic method for detecting spoilers from TV program tweets. To the best of our knowledge, there have been two works that have addressed the spoiler detection task: (1) a keyword matching method and (2) a machine-learning method based on Latent Dirichlet Allocation (LDA). However, they were not designed for short texts as well as the real-world system. The keyword matching method incorrectly predicts most tweets as spoilers. Although the LDA-based method works well on large bodies of text, it fails to accurately detect spoilers from short texts such as Twitter. In this work, we introduce a simple and powerful method of spoiler detection based on four representative features, which are significant indicators of spoilers. To identify and utilize four features, we conduct a precise analysis on real-world tweet data, and we build an SVM-based prediction model based on the result. Using tweets about Dancing with the Stars, and the final of the 2014 World-Cup, we evaluate the effectiveness of the proposed methods on spoiler detection tasks. According to the result, our method achieves greater precision than the competitors while maintaining a comparable recall performance. At the same time, our method outperforms the competitors in terms of processing time, showing that our method is sufficiently lightweight for application to the web-browser. Furthermore, to reduce the labeling cost, we introduce a semi-supervised approach that automatically re-trains the prediction model based on a small amount of labeled data. The experimental results show that the semi-supervised approach delivers performance comparable to that of the previous model.}
+}
+
+@InProceedings{genre2025,
+author="Zhang, Haokai
+and Zhang, Shengtao
+and Cai, Zijian
+and Wang, Heng
+and Zhu, Ruixuan
+and Zeng, Zinan
+and Luo, Minnan",
+editor="Ribeiro, Rita P.
+and Pfahringer, Bernhard
+and Japkowicz, Nathalie
+and Larra{\~{n}}aga, Pedro
+and Jorge, Al{\'i}pio M.
+and Soares, Carlos
+and Abreu, Pedro H.
+and Gama, Jo{\~a}o",
+title="Unveiling the Hidden: Movie Genre and User Bias in Spoiler Detection",
+booktitle="Machine Learning and Knowledge Discovery in Databases. Research Track",
+year="2026",
+publisher="Springer Nature Switzerland",
+address="Cham",
+pages="19--36",
+abstract="Spoilers in movie reviews are important on platforms like IMDb and Rotten Tomatoes, offering benefits and drawbacks. They can guide some viewers' choices but also affect those who prefer no plot details in advance, making effective spoiler detection essential. Existing spoiler detection methods mainly analyze review text, often overlooking the impact of movie genres and user bias, limiting their effectiveness. To address this, we analyze movie review data, finding genre-specific variations in spoiler rates and identifying that certain users are more likely to post spoilers. Based on these findings, we introduce a new spoiler detection framework called {\$}{\$}{\{}{\backslash}texttt {\{}GUSD{\}}{\}}{\$}{\$}GUSD(Genre-aware and User-specific Spoiler Detection), which incorporates genre-specific data and user behavior bias. User bias is calculated through dynamic graph modeling of review history. Additionally, the R2GFormer module combines RetGAT (Retentive Graph Attention Network) for graph information and GenreFormer for genre-specific aggregation. The GMoE (Genre-Aware Mixture of Experts) model further assigns reviews to specialized experts based on genre. Extensive testing on benchmark datasets shows that GUSD achieves state-of-the-art results. This approach advances spoiler detection by addressing genre and user-specific patterns, enhancing user experience on movie review platforms. Our source code is available at https://github.com/AI-explorer-123/GUSD.",
+isbn="978-3-032-06066-2"
+}
+
+@InProceedings{neural2018,
+author="Chang, Buru
+and Kim, Hyunjae
+and Kim, Raehyun
+and Kim, Deahan
+and Kang, Jaewoo",
+editor="Phung, Dinh
+and Tseng, Vincent S.
+and Webb, Geoffrey I.
+and Ho, Bao
+and Ganji, Mohadeseh
+and Rashidi, Lida",
+title="A Deep Neural Spoiler Detection Model Using a Genre-Aware Attention Mechanism",
+booktitle="Advances in Knowledge Discovery and Data Mining",
+year="2018",
+publisher="Springer International Publishing",
+address="Cham",
+pages="183--195",
+abstract="The fast-growing volume of online activity and user-generated content increases the chances of users being exposed to spoilers. To address this problem, several spoiler detection models have been proposed. However, most of the previous models rely on hand-crafted domain-specific features, which limits the generalizability of the models. In this paper, we propose a new deep neural spoiler detection model that uses a genre-aware attention mechanism. Our model consists of a genre encoder and a sentence encoder. The genre encoder is used to extract a genre feature vector from given genres using a convolutional neural network. The sentence encoder is used to extract sentence feature vectors from a given sentence using a bi-directional gated recurrent unit. We also propose a genre-aware attention layer based on the attention mechanism that utilizes genre information for detecting spoilers which vary by genres. Using a sentence feature, our proposed model determines whether a given sentence is a spoiler. The experimental results on a spoiler dataset show that our proposed model which does not use hand-crafted features outperforms the state-of-the-art spoiler detection baseline models. We also conduct a qualitative analysis on the relations between spoilers and genres, and highlight the results through an attention weight visualization.",
+isbn="978-3-319-93034-3"
+}
+
